@@ -1,0 +1,1 @@
+(ns kafunc.local-kafka)
