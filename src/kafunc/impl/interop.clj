@@ -11,7 +11,7 @@
            (java.util Properties UUID)
            (java.io
              ByteArrayInputStream ObjectInputStream
-             ByteArrayOutputStream ObjectOutputStream)
+             ByteArrayOutputStream ObjectOutputStream File)
            (java.nio.file Files)
            (java.nio.file.attribute FileAttribute)))
 
@@ -119,5 +119,7 @@
 
 (defn unique-string [] (str (UUID/randomUUID)))
 
-(defn temp-dir [prefix & file-attrs]
-  (Files/createTempDirectory prefix (into-array FileAttribute file-attrs)))
+(defn temp-dir
+  ^File [prefix & file-attrs]
+  (.toFile
+    (Files/createTempDirectory prefix (into-array FileAttribute file-attrs))))
