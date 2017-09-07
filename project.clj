@@ -1,4 +1,4 @@
-(defproject kafunc/kafunc "0.1.3"
+(defproject kafunc/kafunc "0.2.0-SNAPSHOT"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :url "https://github.com/kafunc/kafunc"
