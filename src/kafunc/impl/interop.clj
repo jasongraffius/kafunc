@@ -11,7 +11,9 @@
            (java.util Properties UUID)
            (java.io
              ByteArrayInputStream ObjectInputStream
-             ByteArrayOutputStream ObjectOutputStream)))
+             ByteArrayOutputStream ObjectOutputStream)
+           (java.nio.file Files)
+           (java.nio.file.attribute FileAttribute)))
 
 (def byte-serializer (.getName ByteArraySerializer))
 (def byte-deserializer (.getName ByteArrayDeserializer))
@@ -116,3 +118,6 @@
     (.toByteArray byte-stream)))
 
 (defn unique-string [] (str (UUID/randomUUID)))
+
+(defn temp-dir [prefix]
+  (Files/createTempDirectory prefix (make-array FileAttribute 0)))
