@@ -119,5 +119,5 @@
 
 (defn unique-string [] (str (UUID/randomUUID)))
 
-(defn temp-dir [prefix]
-  (Files/createTempDirectory prefix (make-array FileAttribute 0)))
+(defn temp-dir [prefix & file-attrs]
+  (Files/createTempDirectory prefix (into-array FileAttribute file-attrs)))
