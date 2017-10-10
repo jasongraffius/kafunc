@@ -1,7 +1,8 @@
 (ns kafunc.impl.interop
   "Namespace for interop with Java/Kafka, to keep core as pure clojure"
   (:refer-clojure :exclude [send])
-  (:require [kafunc.impl.util :as util])
+  (:require [kafunc.impl.util :as util]
+            [clojure.java.io :as jio])
   (:import (org.apache.kafka.clients.consumer
              KafkaConsumer ConsumerRecord Consumer)
            (org.apache.kafka.clients.producer
@@ -21,7 +22,7 @@
 (defrecord CRecord [key value partition topic timestamp offset checksum])
 (defrecord PRecord [key value partition topic timestamp])
 
-(defn- property-map->properties
+(defn property-map->properties
   ^Properties [m]
   (doto (Properties.)
     (.putAll (util/map->properties m))))
@@ -123,3 +124,11 @@
   ^File [prefix & file-attrs]
   (.toFile
     (Files/createTempDirectory prefix (into-array FileAttribute file-attrs))))
+
+(defn unlink
+  [^File path & opts]
+  (let [{recursive? :recursive, silent? :silent} (set opts)]
+    (if recursive?
+      (doseq [file (reverse (file-seq path))]
+        (jio/delete-file file silent?))
+      (jio/delete-file path silent?))))
