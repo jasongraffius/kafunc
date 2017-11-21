@@ -190,7 +190,7 @@
   dereference it to wait for the send to complete."
   [record & [producer serializer]]
   (let [producer   (or producer (make-producer))
-        serialized (serialize-record record producer serializer)
+        serialized (serialize-record record serializer)
         meta       (interop/send producer serialized)]
     (delay (merge record (interop/record-meta->map (deref meta))))))
 
@@ -212,7 +212,7 @@
   send-all-records or send-all-records for those use cases."
   [record-seq & [producer serializer]]
   (let [producer (or producer (make-producer))]
-    (map deref (doall (map send-record record-seq)))))
+    (map deref (doall (map #(send-record % producer serializer) record-seq)))))
 
 (defn send-all-records
   "Like send-records, but does not return the metadata, and does not retain
