@@ -206,11 +206,18 @@
     * :checksum
 
   The sending is eager, but the retreiving of metadata from the results is lazy.
-  This allows asynchronous sends to simply ignore this metadata."
+  This allows asynchronous sends to simply ignore this metadata.
+
+  Do not use this function for large or infinite sequences! Instead, use
+  send-all-records or send-all-records for those use cases."
   [record-seq & [producer serializer]]
   (let [producer (or producer (make-producer))]
-    (map merge
-         record-seq
-         (map (comp interop/record-meta->map deref)
-              (doall (map (partial interop/send producer)
-                          (serialize-records record-seq)))))))
+    (map deref (doall (map send-record record-seq)))))
+
+(defn send-all-records
+  "Like send-records, but does not return the metadata, and does not retain
+  the head of the seq. This can be used for very large or infinite sequences."
+  [record-seq & [producer serializer]]
+  (let [producer (or producer (make-producer))]
+    (doseq [record record-seq]
+      (send-record record producer serializer))))
