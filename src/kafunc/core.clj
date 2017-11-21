@@ -169,6 +169,31 @@
   (let [serialize (fnil (or serializer *serializer* identity) nil)]
     (map (partial update-record-kv serialize) xs)))
 
+(defn serialize-record
+  "Serialize key and value of a record to prepare for sending"
+  [record & [serializer]]
+  (let [serialize (or serializer *serializer* identity)]
+    (update-record-kv serialize record)))
+
+(defn send-record
+  "Send a producer record to its destination topic/partition
+
+  Returns a `deref`able which contains the record updated with the following
+  values, which are populated from the Kafka metadata:
+    * :topic
+    * :partition
+    * :offset
+    * :timestamp
+    * :checksum
+
+  Asynchronous sends can simply ignore this metadata, or synchronous sends can
+  dereference it to wait for the send to complete."
+  [record & [producer serializer]]
+  (let [producer   (or producer (make-producer))
+        serialized (serialize-record record producer serializer)
+        meta       (interop/send producer serialized)]
+    (delay (merge record (interop/record-meta->map (deref meta))))))
+
 (defn send-records
   "Send a seq of producer-records to their destinations topic and partition.
 
