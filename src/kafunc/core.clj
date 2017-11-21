@@ -93,7 +93,7 @@
   (let [timeout (or timeout Long/MAX_VALUE)]
     (deserialize-records (interop/poll consumer timeout))))
 
-(defn consumer->record-seq
+(defn consumer->records
   "Create an infinite lazy seq which contains records consumed by a consumer.
 
   The keys in the record are:
@@ -110,22 +110,22 @@
   [consumer & [deserializer]]
   (lazy-cat
     (next-records consumer :deserializer deserializer)
-    (consumer->record-seq consumer deserializer)))
+    (consumer->records consumer deserializer)))
 
-(defn record-seq->value-seq
+(defn records->values
   "Creates a lazy seq of values contained within the records in record-seq."
   [record-seq]
   (map :value record-seq))
 
-(defn consumer->value-seq
+(defn consumer->values
   "Creates an infinite lazy seq which contains values consumed by a consumer.
 
   Useful if topic/partition/key/offset aren't important."
   [consumer & [deserializer]]
-  (-> (consumer->record-seq consumer deserializer)
-      (record-seq->value-seq)))
+  (-> (consumer->records consumer deserializer)
+      (records->values)))
 
-(defn topics->record-seq
+(defn topics->records
   "Create a consumer, subscribe it to the topics, and return a seq of values
   consumed from those topics.
 
@@ -134,7 +134,7 @@
   (let [group (or group (interop/unique-string))]
     (-> (make-consumer group config)
         (subscribe topics)
-        (consumer->record-seq deserializer))))
+        (consumer->records deserializer))))
 
 ;;; Producers
 
