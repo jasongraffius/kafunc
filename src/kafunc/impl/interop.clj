@@ -105,9 +105,10 @@
 (defn io-deserialize
   "A basic deserializer which uses java.io's deserialization."
   [bytes]
-  (with-open [byte-stream   (ByteArrayInputStream. bytes)
-              object-stream (ObjectInputStream. byte-stream)]
-    (.readObject object-stream)))
+  (when bytes
+    (with-open [byte-stream   (ByteArrayInputStream. bytes)
+                object-stream (ObjectInputStream. byte-stream)]
+        (.readObject object-stream))))
 
 (defn io-serialize
   "A basic serializer which uses java.io's serialization."
