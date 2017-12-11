@@ -93,7 +93,7 @@
   (let [timeout (or timeout Long/MAX_VALUE)]
     (deserialize-records (interop/poll consumer timeout))))
 
-(defn consumer->record-seq
+(defn consumer->records
   "Create an infinite lazy seq which contains records consumed by a consumer.
 
   The keys in the record are:
@@ -110,22 +110,22 @@
   [consumer & [deserializer]]
   (lazy-cat
     (next-records consumer :deserializer deserializer)
-    (consumer->record-seq consumer deserializer)))
+    (consumer->records consumer deserializer)))
 
-(defn record-seq->value-seq
+(defn records->values
   "Creates a lazy seq of values contained within the records in record-seq."
   [record-seq]
   (map :value record-seq))
 
-(defn consumer->value-seq
+(defn consumer->values
   "Creates an infinite lazy seq which contains values consumed by a consumer.
 
   Useful if topic/partition/key/offset aren't important."
   [consumer & [deserializer]]
-  (-> (consumer->record-seq consumer deserializer)
-      (record-seq->value-seq)))
+  (-> (consumer->records consumer deserializer)
+      (records->values)))
 
-(defn topics->record-seq
+(defn topics->records
   "Create a consumer, subscribe it to the topics, and return a seq of values
   consumed from those topics.
 
@@ -134,7 +134,7 @@
   (let [group (or group (interop/unique-string))]
     (-> (make-consumer group config)
         (subscribe topics)
-        (consumer->record-seq deserializer))))
+        (consumer->records deserializer))))
 
 ;;; Producers
 
@@ -169,6 +169,31 @@
   (let [serialize (fnil (or serializer *serializer* identity) nil)]
     (map (partial update-record-kv serialize) xs)))
 
+(defn serialize-record
+  "Serialize key and value of a record to prepare for sending"
+  [record & [serializer]]
+  (let [serialize (or serializer *serializer* identity)]
+    (update-record-kv serialize record)))
+
+(defn send-record
+  "Send a producer record to its destination topic/partition
+
+  Returns a `deref`able which contains the record updated with the following
+  values, which are populated from the Kafka metadata:
+    * :topic
+    * :partition
+    * :offset
+    * :timestamp
+    * :checksum
+
+  Asynchronous sends can simply ignore this metadata, or synchronous sends can
+  dereference it to wait for the send to complete."
+  [record & [producer serializer]]
+  (let [producer   (or producer (make-producer))
+        serialized (serialize-record record serializer)
+        meta       (interop/send producer serialized)]
+    (delay (merge record (interop/record-meta->map (deref meta))))))
+
 (defn send-records
   "Send a seq of producer-records to their destinations topic and partition.
 
@@ -181,11 +206,18 @@
     * :checksum
 
   The sending is eager, but the retreiving of metadata from the results is lazy.
-  This allows asynchronous sends to simply ignore this metadata."
+  This allows asynchronous sends to simply ignore this metadata.
+
+  Do not use this function for large or infinite sequences! Instead, use
+  send-all-records or send-all-records for those use cases."
   [record-seq & [producer serializer]]
   (let [producer (or producer (make-producer))]
-    (map merge
-         record-seq
-         (map (comp interop/record-meta->map deref)
-              (doall (map (partial interop/send producer)
-                          (serialize-records record-seq)))))))
+    (map deref (doall (map #(send-record % producer serializer) record-seq)))))
+
+(defn send-all-records
+  "Like send-records, but does not return the metadata, and does not retain
+  the head of the seq. This can be used for very large or infinite sequences."
+  [record-seq & [producer serializer]]
+  (let [producer (or producer (make-producer))]
+    (doseq [record record-seq]
+      (send-record record producer serializer))))
