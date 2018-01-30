@@ -2,6 +2,7 @@
   "Namespace for interop with Java/Kafka, to keep core as pure clojure"
   (:refer-clojure :exclude [send])
   (:require [kafunc.impl.util :as util]
+            [clojure.edn :as edn]
             [clojure.java.io :as jio])
   (:import (org.apache.kafka.clients.consumer
              KafkaConsumer ConsumerRecord Consumer)
@@ -118,6 +119,17 @@
     (.writeObject object-stream object)
     (.flush object-stream)
     (.toByteArray byte-stream)))
+
+(defn edn-deserialize
+  "A basic deserializer which uses EDN format messages"
+  [^bytes bytes]
+  (when bytes
+    (read-string (String. bytes))))
+
+(defn edn-serialize
+  "A basic serializer which uses EDN format messages"
+  [object]
+  (.getBytes (pr-str object)))
 
 (defn unique-string [] (str (UUID/randomUUID)))
 

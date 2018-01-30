@@ -39,6 +39,22 @@
   makes no guarantees of efficiency."
   interop/io-serialize)
 
+(def edn-deserializer interop/edn-deserialize)
+(def edn-serializer interop/edn-serialize)
+(def io-deserializer interop/io-deserialize)
+(def io-serializer interop/io-serialize)
+
+(defn set-serializer!
+  "Set the serializer in all threads"
+  [serializer]
+  (alter-var-root *serializer* (constantly serializer)))
+
+(defn set-deserializer!
+  "Set the deserializer in all threads"
+  [deserializer]
+  (alter-var-root *deserializer* (constantly deserializer)))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Functions
 
