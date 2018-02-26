@@ -47,12 +47,12 @@
 (defn set-serializer!
   "Set the serializer in all threads"
   [serializer]
-  (alter-var-root *serializer* (constantly serializer)))
+  (alter-var-root #'*serializer* (constantly serializer)))
 
 (defn set-deserializer!
   "Set the deserializer in all threads"
   [deserializer]
-  (alter-var-root *deserializer* (constantly deserializer)))
+  (alter-var-root #'*deserializer* (constantly deserializer)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
