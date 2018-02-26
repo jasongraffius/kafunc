@@ -6,4 +6,7 @@
   :dependencies [[org.apache.kafka/kafka_2.11 "0.10.2.1"]
                  [org.apache.zookeeper/zookeeper "3.4.10"]
                  [org.clojure/clojure "1.9.0"]]
+  :deploy-repositories {"clojars" {:url "https://clojars.org/repo"
+                                   ;; TODO Set up signing
+                                   :sign-releases false}}
   :repl-options {:init-ns kafunc.core})
