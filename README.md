@@ -1,3 +1,5 @@
+[![Clojars Project](https://img.shields.io/clojars/v/kafunc.svg)](https://clojars.org/kafunc)
+
 # Kafunc
 ## A less imperative approach to Kafka
 
